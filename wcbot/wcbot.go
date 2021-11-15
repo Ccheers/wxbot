@@ -77,7 +77,7 @@ type WcBot struct {
 	fileIndex           int
 	send2oss            bool
 	ossUrl              string
-	handler        Handler
+	handler             Handler
 }
 
 var (
@@ -117,7 +117,13 @@ func New() *WcBot {
 	wcBot.cursor = 0
 	wcBot.isBigContact = false
 	wcBot.tempPwd = config.Config.WxBot4gConf.WxQrDir
-	wcBot.httpClient = httpClient.New(map[string]string{"User-Agent": "Mozilla/5.0 (X11; Linux i686; U;) Gecko/20070322 Kazehakase/0.4.5"})
+	wcBot.httpClient = httpClient.New(
+		map[string]string{
+			"User-Agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36",
+			"extspam":        "Gp8ICJkIEpkICggwMDAwMDAwMRAGGoAI1GiJSIpeO1RZTq9QBKsRbPJdi84ropi16EYI10WB6g74sGmRwSNXjPQnYUKYotKkvLGpshucCaeWZMOylnc6o2AgDX9grhQQx7fm2DJRTyuNhUlwmEoWhjoG3F0ySAWUsEbH3bJMsEBwoB//0qmFJob74ffdaslqL+IrSy7LJ76/G5TkvNC+J0VQkpH1u3iJJs0uUYyLDzdBIQ6Ogd8LDQ3VKnJLm4g/uDLe+G7zzzkOPzCjXL+70naaQ9medzqmh+/SmaQ6uFWLDQLcRln++wBwoEibNpG4uOJvqXy+ql50DjlNchSuqLmeadFoo9/mDT0q3G7o/80P15ostktjb7h9bfNc+nZVSnUEJXbCjTeqS5UYuxn+HTS5nZsPVxJA2O5GdKCYK4x8lTTKShRstqPfbQpplfllx2fwXcSljuYi3YipPyS3GCAqf5A7aYYwJ7AvGqUiR2SsVQ9Nbp8MGHET1GxhifC692APj6SJxZD3i1drSYZPMMsS9rKAJTGz2FEupohtpf2tgXm6c16nDk/cw+C7K7me5j5PLHv55DFCS84b06AytZPdkFZLj7FHOkcFGJXitHkX5cgww7vuf6F3p0yM/W73SoXTx6GX4G6Hg2rYx3O/9VU2Uq8lvURB4qIbD9XQpzmyiFMaytMnqxcZJcoXCtfkTJ6pI7a92JpRUvdSitg967VUDUAQnCXCM/m0snRkR9LtoXAO1FUGpwlp1EfIdCZFPKNnXMeqev0j9W9ZrkEs9ZWcUEexSj5z+dKYQBhIICviYUQHVqBTZSNy22PlUIeDeIs11j7q4t8rD8LPvzAKWVqXE+5lS1JPZkjg4y5hfX1Dod3t96clFfwsvDP6xBSe1NBcoKbkyGxYK0UvPGtKQEE0Se2zAymYDv41klYE9s+rxp8e94/H8XhrL9oGm8KWb2RmYnAE7ry9gd6e8ZuBRIsISlJAE/e8y8xFmP031S6Lnaet6YXPsFpuFsdQs535IjcFd75hh6DNMBYhSfjv456cvhsb99+fRw/KVZLC3yzNSCbLSyo9d9BI45Plma6V8akURQA/qsaAzU0VyTIqZJkPDTzhuCl92vD2AD/QOhx6iwRSVPAxcRFZcWjgc2wCKh+uCYkTVbNQpB9B90YlNmI3fWTuUOUjwOzQRxJZj11NsimjOJ50qQwTTFj6qQvQ1a/I+MkTx5UO+yNHl718JWcR3AXGmv/aa9rD1eNP8ioTGlOZwPgmr2sor2iBpKTOrB83QgZXP+xRYkb4zVC+LoAXEoIa1+zArywlgREer7DLePukkU6wHTkuSaF+ge5Of1bXuU4i938WJHj0t3D8uQxkJvoFi/EYN/7u2P1zGRLV4dHVUsZMGCCtnO6BBigFMAA=",
+			"client-version": "2.0.0",
+		},
+	)
 	wcBot.conf = make(map[string]interface{})
 
 	wcBot.chatSet = ""
@@ -214,7 +220,7 @@ func (wc *WcBot) Run() {
 		logrus.Info("failed: web wechat status notify")
 	}
 
-	if ok := wc.GetContact(false, ""); ok == "unknown" {
+	if ok := wc.GetContact(); ok == "unknown" {
 		logrus.Info(fmt.Sprintf("Get %d contacts", len(wc.contactList)))
 		logrus.Info("succeed: start to process messages")
 	}
@@ -230,10 +236,11 @@ func (wc *WcBot) Run() {
 func (wc *WcBot) getUuid() error {
 	urlStr := "https://login.weixin.qq.com/jslogin?"
 	params := url.Values{
-		"appid": []string{"wx782c26e4c19acffb"},
-		"fun":   []string{"new"},
-		"lang":  []string{"zh_CN"},
-		"_":     []string{strconv.Itoa(int(time.Now().Unix())*1000 + rand.Intn(1000))},
+		"appid":        []string{"wx782c26e4c19acffb"},
+		"fun":          []string{"new"},
+		"lang":         []string{"en_"},
+		"redirect_uri": []string{"https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxnewloginpage?mod=desktop"},
+		"_":            []string{strconv.Itoa(int(time.Now().Unix())*1000 + rand.Intn(1000))},
 	}
 	data, err := wc.httpClient.Get(urlStr, params)
 	if err != nil {
@@ -242,6 +249,7 @@ func (wc *WcBot) getUuid() error {
 	}
 
 	regx := `window.QRLogin.code = (\d+); window.QRLogin.uuid = "(\S+?)"`
+	logrus.Debug(string(data))
 	pm := utils.RegexpMatchStr(regx, string(data))
 	if pm != nil && pm[0] != nil && len(pm[0]) >= 3 {
 		code := pm[0][1]
@@ -345,11 +353,15 @@ func (wc *WcBot) login() bool {
 		return false
 	}
 
+	logrus.Info(wc.redirectUri)
+
 	data, err := wc.httpClient.Get(wc.redirectUri, nil)
 	if err != nil {
 		logrus.Error(err.Error())
 		return false
 	}
+
+	logrus.Debug(string(data))
 
 	doc := etree.NewDocument()
 	if err := doc.ReadFromString(string(data)); err != nil {
@@ -481,7 +493,7 @@ func (wc *WcBot) statusNotify() bool {
 	return ret
 }
 
-func (wc *WcBot) GetContact(isUnknow bool, uId string) string {
+func (wc *WcBot) GetContact() string {
 	contactMap := make(map[string]models.User, 0)
 	urlStr := wc.baseUri + fmt.Sprintf("/webwxgetcontact?lang=zh_CN&seq=%s&pass_ticket=%s&skey=%s&r=%s",
 		"0", wc.passTicket, wc.sKey, strconv.Itoa(int(time.Now().Unix())))
