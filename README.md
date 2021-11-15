@@ -1,4 +1,4 @@
-wxBot4g 是基于go的微信机器人
+fork from [wxBot4g 是基于go的微信机器人](https://github.com/liangjfblue/wxBot4g)
 
 ## 技术
 - gin（http框架）

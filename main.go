@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"wxBot4g/models"
 	"wxBot4g/pkg/define"
 	"wxBot4g/wcbot"
@@ -15,7 +16,7 @@ var (
 type WeChatBot struct {
 }
 
-func (w *WeChatBot)HandleMessage(msg models.RealRecvMsg) {
+func (w *WeChatBot) HandleMessage(msg models.RealRecvMsg) {
 	//过滤不支持消息99
 	if msg.MsgType == 99 || msg.MsgTypeId == 99 {
 		return
@@ -23,9 +24,6 @@ func (w *WeChatBot)HandleMessage(msg models.RealRecvMsg) {
 
 	//获取unknown的username
 	contentUser := msg.Content.User.Name
-	if msg.Content.User.Name == "unknown" {
-		contentUser = Bot.GetGroupUserName(msg.Content.User.Uid)
-	}
 
 	logrus.Debug(
 		"消息类型:", define.MsgIdString(msg.MsgTypeId), " ",
@@ -34,12 +32,16 @@ func (w *WeChatBot)HandleMessage(msg models.RealRecvMsg) {
 		"发送人:", msg.SendMsgUSer.Name, " ",
 		"发送内容人:", contentUser, " ",
 		"内容:", msg.Content.Data)
+
+	if strings.Contains(msg.Content.Data, "【海军】") {
+		Bot.SendMsgByUid(msg.Content.Data, msg.FromUserName)
+	}
 }
 
 func main() {
 	Bot = wcbot.New()
 	Bot.Debug = true
-	//Bot.QrCodeInTerminal() //默认在 wxqr 目录生成二维码，调用此函数，在终端打印二维码
+	Bot.QrCodeInTerminal() //默认在 wxqr 目录生成二维码，调用此函数，在终端打印二维码
 
 	Bot.AddHandler(&WeChatBot{})
 
