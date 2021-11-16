@@ -1,6 +1,6 @@
 module wxBot4g
 
-go 1.12
+go 1.16
 
 require (
 	github.com/beevik/etree v1.1.0

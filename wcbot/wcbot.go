@@ -33,7 +33,7 @@ import (
 )
 
 type Handler interface {
-	HandleMessage(models.RealRecvMsg)
+	HandleMessage(*models.RealRecvMsg)
 }
 
 type WcBot struct {
