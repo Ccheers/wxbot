@@ -15,16 +15,17 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"wxbot/config"
-	"wxbot/models"
-	"wxbot/pkg/httpClient"
-	"wxbot/pkg/utils"
+
+	"github.com/Ccheers/wxbot/config"
+	"github.com/Ccheers/wxbot/models"
+	"github.com/Ccheers/wxbot/pkg/httpClient"
+	"github.com/Ccheers/wxbot/pkg/utils"
 
 	"github.com/mdp/qrterminal"
 
 	"github.com/gin-gonic/gin"
 
-	_ "wxbot/config"
+	_ "github.com/Ccheers/wxbot/config"
 
 	"github.com/beevik/etree"
 	"github.com/sirupsen/logrus"

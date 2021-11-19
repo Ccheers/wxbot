@@ -8,10 +8,11 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"wxbot/internal/biz"
-	"wxbot/internal/handler"
-	"wxbot/models"
-	"wxbot/wcbot"
+
+	"github.com/Ccheers/wxbot/internal/biz"
+	"github.com/Ccheers/wxbot/internal/handler"
+	"github.com/Ccheers/wxbot/models"
+	"github.com/Ccheers/wxbot/wcbot"
 
 	"github.com/sirupsen/logrus"
 )
@@ -28,7 +29,7 @@ var errJobExecFailed = errors.New("job exec failed")
 const JobFuncEventFunc biz.JobFuncID = 1
 
 func NewEventServer(useCase *biz.JobUseCase, bot *wcbot.WcBot) handler.MsgHandler {
-	err := useCase.RegisterJobFunc(JobFuncEventFunc, withJobFunc(bot))
+	err := useCase.RegisterJobFunc(JobFuncEventFunc, callback(bot))
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +39,7 @@ func NewEventServer(useCase *biz.JobUseCase, bot *wcbot.WcBot) handler.MsgHandle
 		if !ok {
 			return false
 		}
-		job.FromUserID = msg.FromUserName
+		job.FromUserID = msg.SendMsgUSer.Name
 		job.JobFuncID = JobFuncEventFunc
 
 		_, err := useCase.AddJob(context.TODO(), job)
@@ -155,10 +156,11 @@ func parseTime(content string) (string, error) {
 	return t.Format("4 15"), nil
 }
 
-func withJobFunc(bot *wcbot.WcBot) biz.JobFunc {
+// 注册到 CRON 的 job，周期性任务到期会回调这个函数
+func callback(bot *wcbot.WcBot) biz.CallbackFunc {
 	return func(job *biz.Job) error {
 		logrus.Infof("send msg to: %s content: %s", job.FromUserID, job.Content)
-		ok := bot.SendMsgByUid(fmt.Sprintf("[海军BOT]\n\r%s", job.Content), job.FromUserID)
+		ok := bot.SendMsg(job.FromUserID, fmt.Sprintf("[海军BOT]\n\r%s", job.Content), false)
 		if !ok {
 			return fmt.Errorf("%w: %s", errJobExecFailed, "send msg failed")
 		}

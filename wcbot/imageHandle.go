@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"wxbot/config"
+
+	"github.com/Ccheers/wxbot/config"
 
 	"github.com/sirupsen/logrus"
 

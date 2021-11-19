@@ -2,7 +2,8 @@ package wcbot
 
 import (
 	"net/http"
-	"wxbot/config"
+
+	"github.com/Ccheers/wxbot/config"
 
 	"github.com/sirupsen/logrus"
 

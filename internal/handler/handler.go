@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"wxbot/models"
-	"wxbot/pkg/define"
-	"wxbot/wcbot"
+	"github.com/Ccheers/wxbot/models"
+	"github.com/Ccheers/wxbot/pkg/define"
+	"github.com/Ccheers/wxbot/wcbot"
 
 	"github.com/sirupsen/logrus"
 )

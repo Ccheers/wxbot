@@ -1,4 +1,4 @@
-module wxbot
+module github.com/Ccheers/wxbot
 
 go 1.16
 

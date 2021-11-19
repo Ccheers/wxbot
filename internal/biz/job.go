@@ -5,7 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"wxbot/internal/cron"
+
+	"github.com/Ccheers/wxbot/internal/cron"
 
 	cron2 "github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"
@@ -49,7 +50,7 @@ const (
 	JobTypeCron = 1
 )
 
-type JobFunc func(job *Job) error
+type CallbackFunc func(job *Job) error
 
 var (
 	errRegisterJobFunc = errors.New("register job func error")
@@ -58,9 +59,9 @@ var (
 
 // JobUseCase job 是一次性任务
 type JobUseCase struct {
-	repo       JobRepo
-	jobFuncMap sync.Map
-	cron       *cron.Cron
+	repo            JobRepo
+	callbackFuncMap sync.Map
+	cron            *cron.Cron
 }
 
 func (j *JobUseCase) AddJob(ctx context.Context, job *Job) (*Job, error) {
@@ -92,21 +93,21 @@ func (j *JobUseCase) GetAllJobs(ctx context.Context) ([]*Job, error) {
 	return j.repo.GetAllJobs(ctx)
 }
 
-func (j *JobUseCase) RegisterJobFunc(typeID JobFuncID, f JobFunc) error {
-	_, ok := j.jobFuncMap.Load(typeID)
+func (j *JobUseCase) RegisterJobFunc(typeID JobFuncID, f CallbackFunc) error {
+	_, ok := j.callbackFuncMap.Load(typeID)
 	if ok {
 		return fmt.Errorf("%w: job type %d already registered", errRegisterJobFunc, typeID)
 	}
-	j.jobFuncMap.Store(typeID, f)
+	j.callbackFuncMap.Store(typeID, f)
 	return nil
 }
 
-func (j *JobUseCase) GetJobFunc(typeID JobFuncID) (JobFunc, error) {
-	jFunc, ok := j.jobFuncMap.Load(typeID)
+func (j *JobUseCase) GetJobFunc(typeID JobFuncID) (CallbackFunc, error) {
+	jFunc, ok := j.callbackFuncMap.Load(typeID)
 	if !ok {
 		return nil, fmt.Errorf("%w: job type %d not registered", errGetJobFunc, typeID)
 	}
-	return jFunc.(JobFunc), nil
+	return jFunc.(CallbackFunc), nil
 }
 
 func (j *JobUseCase) WithCronFunc(jobID uint64) func() {
@@ -143,7 +144,7 @@ func (j *JobUseCase) WithCronFunc(jobID uint64) func() {
 }
 
 func NewJobUseCase(repo JobRepo, c *cron.Cron) *JobUseCase {
-	return &JobUseCase{repo: repo, cron: c, jobFuncMap: sync.Map{}}
+	return &JobUseCase{repo: repo, cron: c, callbackFuncMap: sync.Map{}}
 }
 
 type JobRepo interface {

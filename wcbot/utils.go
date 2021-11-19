@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"wxbot/models"
+
+	"github.com/Ccheers/wxbot/models"
 
 	"github.com/sirupsen/logrus"
 )
