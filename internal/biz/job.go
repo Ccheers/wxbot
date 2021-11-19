@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"wxBot4g/internal/cron"
+	"wxbot/internal/cron"
 
 	cron2 "github.com/robfig/cron/v3"
 	"github.com/sirupsen/logrus"

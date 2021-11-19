@@ -2,7 +2,7 @@ package wcbot
 
 import (
 	"net/http"
-	"wxBot4g/config"
+	"wxbot/config"
 
 	"github.com/sirupsen/logrus"
 

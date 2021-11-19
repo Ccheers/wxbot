@@ -3,8 +3,8 @@ package data
 import (
 	"context"
 	"encoding/json"
-	"wxBot4g/internal/biz"
-	"wxBot4g/internal/pkg/itob"
+	"wxbot/internal/biz"
+	"wxbot/internal/pkg/itob"
 
 	"github.com/sirupsen/logrus"
 	"go.etcd.io/bbolt"

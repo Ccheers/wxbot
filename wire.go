@@ -5,11 +5,11 @@
 package main
 
 import (
-	"wxBot4g/internal/biz"
-	"wxBot4g/internal/cron"
-	"wxBot4g/internal/data"
-	"wxBot4g/internal/handler"
-	"wxBot4g/wcbot"
+	"wxbot/internal/biz"
+	"wxbot/internal/cron"
+	"wxbot/internal/data"
+	"wxbot/internal/handler"
+	"wxbot/wcbot"
 
 	"github.com/google/wire"
 )

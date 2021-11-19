@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"wxBot4g/models"
-	"wxBot4g/pkg/define"
-	"wxBot4g/wcbot"
+	"wxbot/models"
+	"wxbot/pkg/define"
+	"wxbot/wcbot"
 
 	"github.com/sirupsen/logrus"
 )

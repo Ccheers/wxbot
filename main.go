@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"wxBot4g/internal/biz"
-	"wxBot4g/internal/cron"
-	"wxBot4g/internal/handler"
-	"wxBot4g/internal/handler/middleware/event"
-	"wxBot4g/wcbot"
+	"wxbot/internal/biz"
+	"wxbot/internal/cron"
+	"wxbot/internal/handler"
+	"wxbot/internal/handler/middleware/event"
+	"wxbot/wcbot"
 
 	"github.com/sirupsen/logrus"
 )

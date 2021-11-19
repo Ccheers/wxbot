@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"wxBot4g/config"
+	"wxbot/config"
 
 	"github.com/sirupsen/logrus"
 

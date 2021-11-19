@@ -8,10 +8,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"wxBot4g/internal/biz"
-	"wxBot4g/internal/handler"
-	"wxBot4g/models"
-	"wxBot4g/wcbot"
+	"wxbot/internal/biz"
+	"wxbot/internal/handler"
+	"wxbot/models"
+	"wxbot/wcbot"
 
 	"github.com/sirupsen/logrus"
 )
