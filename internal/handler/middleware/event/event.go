@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"regexp"
@@ -21,91 +22,71 @@ const (
 	segTypeLoop = 3 // 循环提醒
 )
 
-type freType uint
-
-const (
-	none    freType = 0
-	aDay    freType = 1
-	aWeek   freType = 1 << 2
-	aMonth  freType = 1 << 3
-	workDay freType = 1 << 4
-)
-
-type event struct {
-	frequency *frequency
-	when      time.Duration
-	content   string
-}
-
-type frequency struct {
-	tp freType
-	d  uint
-}
-
 func NewEventServer(useCase *biz.JobUseCase) func(msg *models.RealRecvMsg, Bot *wcbot.WcBot) (isBreak bool) {
-	return Server
-}
+	return func(msg *models.RealRecvMsg, Bot *wcbot.WcBot) (isBreak bool) {
+		job, ok := parseEvent(msg.Content.Data)
+		if ok {
+			return false
+		}
+		_, err := useCase.PutJob(context.TODO(), job)
+		if err != nil {
+			logrus.Error(err.Error())
+			return false
+		}
 
-func Server(msg *models.RealRecvMsg, Bot *wcbot.WcBot) (isBreak bool) {
-	_, ok := parseEvent(msg.Content.Data)
-	if ok {
-		return false
+		return true
 	}
-
-	return true
 }
 
-func parseEvent(content string) (*event, bool) {
+func parseEvent(content string) (*biz.Job, bool) {
 	seg := strings.Split(content, splitChar)
 	if len(seg) != 2 && len(seg) != 3 {
 		return nil, false
 	}
 	switch len(seg) {
 	case segTypeOnce:
-		t, err := parseTime(seg[0])
+		tExp, err := parseTime(seg[0])
 		if err != nil {
 			logrus.Errorf("%s", err)
 			return nil, false
 		}
 
-		return &event{
-			frequency: &frequency{
-				tp: none,
-			},
-			when:    t,
-			content: seg[1],
+		return &biz.Job{
+			CronExpress: fmt.Sprintf("%s %s", tExp, string(biz.ADay)),
+			Content:     seg[1],
 		}, true
 	case segTypeLoop:
-		f, err := parseFrequency(seg[0])
+		fExp, err := parseFrequency(seg[0])
 		if err != nil {
 			logrus.Errorf("%s", err)
 			return nil, false
 		}
 
-		t, err := parseTime(seg[1])
+		tExp, err := parseTime(seg[1])
 		if err != nil {
 			logrus.Errorf("%s", err)
 			return nil, false
 		}
 
-		return &event{
-			frequency: f,
-			when:      t,
-			content:   seg[2],
+		return &biz.Job{
+			CronExpress: fmt.Sprintf("%s %s", tExp, fExp),
+			Origin:      "",
+			Content:     seg[2],
+			JobType:     0,
 		}, true
 	}
 	return nil, false
 }
 
 var (
-	regFreType = regexp.MustCompile("(每天|每日|每周|每月|工作日)[^\\d]*(\\d+)")
+	regFreType = regexp.MustCompile("(每天|每日|每周|每月|工作日)[^\\Day]*(\\Day+)")
 )
 var (
-	errParseFrequency = errors.New("parse frequency error")
+	errParseFrequency = errors.New("parse Frequency error")
 )
 
-func parseFrequency(content string) (*frequency, error) {
-	var tp freType
+func parseFrequency(content string) (string, error) {
+	var tp biz.FreType
 	var d uint
 
 	res := regFreType.FindAllStringSubmatch(content, -1)
@@ -115,39 +96,32 @@ func parseFrequency(content string) (*frequency, error) {
 		case "每天":
 			fallthrough
 		case "每日":
-			tp = aDay
+			tp = biz.ADay
 		case "每周":
-			tp = aWeek
+			tp = biz.AWeek
 		case "每月":
-			tp = aMonth
+			tp = biz.AMonth
 		case "工作日":
-			tp = workDay
+			tp = biz.WorkDay
 		default:
-			tp = aMonth
+			return "", fmt.Errorf("%w: %s", errParseFrequency, "no match")
 		}
 		// 如果是每周或者每月点类型的，则需要检查是否是合法的
-		if tp&(aMonth|aWeek) > 0 && err != nil {
-			return nil, fmt.Errorf("%w: %s", errParseFrequency, err)
+		if (tp == biz.AMonth || tp == biz.AWeek) && err != nil {
+			return "", fmt.Errorf("%w: %s", errParseFrequency, err)
 		}
 		d = uint(day)
-		return &frequency{
-			tp: tp,
-			d:  d,
-		}, nil
+		return fmt.Sprintf(string(tp), d), nil
 	}
-	return nil, fmt.Errorf("%w: %s", errParseFrequency, "no match")
+	return "", fmt.Errorf("%w: %s", errParseFrequency, "no match")
 }
 
 var errParseTime = errors.New("parse time error")
 
-func parseTime(content string) (time.Duration, error) {
+func parseTime(content string) (string, error) {
 	t, err := time.ParseInLocation("15:04", content, time.Local)
 	if err != nil {
-		return 0, fmt.Errorf("%w: %s", errParseTime, err)
+		return "", fmt.Errorf("%w: %s", errParseTime, err)
 	}
-	logrus.Debug(t.Format("2006-01-02 15:04:05"))
-	zero := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local)
-	logrus.Debug(zero.Format("2006-01-02 15:04:05"))
-
-	return t.Sub(zero), nil
+	return t.Format("4 15"), nil
 }

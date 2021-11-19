@@ -1,4 +1,6 @@
-package biz
+package itob
+
+import "encoding/binary"
 
 //
 //
@@ -19,4 +21,9 @@ package biz
 //
 //
 
-// task 是定时任务
+// Itob returns an 8-byte big endian representation of v.
+func Itob(v uint64) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
+}

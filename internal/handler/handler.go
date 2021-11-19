@@ -46,7 +46,6 @@ func (w *WeChatBot) HandleMessage(msg *models.RealRecvMsg) {
 	for _, h := range w.middlewares {
 		isBreak := h(msg, w.Bot)
 		if isBreak {
-
 			break
 		}
 	}
