@@ -3,7 +3,6 @@ package data
 import (
 	"context"
 	"encoding/json"
-	"time"
 	"wxBot4g/internal/biz"
 	"wxBot4g/internal/pkg/itob"
 
@@ -54,7 +53,7 @@ func (j *JobRepoImpl) DeleteJob(ctx context.Context, jobID uint64) error {
 	})
 }
 
-func (j *JobRepoImpl) GetAllJobs(ctx context.Context, duration time.Duration) ([]*biz.Job, error) {
+func (j *JobRepoImpl) GetAllJobs(ctx context.Context) ([]*biz.Job, error) {
 	jobs := make([]*biz.Job, 0)
 	err := j.data.db.View(func(tx *bbolt.Tx) error {
 		c := tx.Bucket([]byte(j.TableName())).Cursor()
@@ -78,10 +77,13 @@ func (j *JobRepoImpl) GetAllJobs(ctx context.Context, duration time.Duration) ([
 }
 
 func (j *JobRepoImpl) GetJobByID(ctx context.Context, jobID uint64) (job *biz.Job, err error) {
+	job = new(biz.Job)
+
 	err = j.data.db.View(func(tx *bbolt.Tx) error {
 		b := tx.Bucket([]byte(j.TableName()))
 
 		v := b.Get(itob.Itob(jobID))
+		logrus.Infof("v: %s", string(v))
 		err := json.Unmarshal(v, job)
 		if err != nil {
 			return err

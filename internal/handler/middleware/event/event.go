@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 	"wxBot4g/internal/biz"
+	"wxBot4g/internal/handler"
 	"wxBot4g/models"
 	"wxBot4g/wcbot"
 
@@ -22,23 +23,41 @@ const (
 	segTypeLoop = 3 // 循环提醒
 )
 
-func NewEventServer(useCase *biz.JobUseCase) func(msg *models.RealRecvMsg, Bot *wcbot.WcBot) (isBreak bool) {
-	return func(msg *models.RealRecvMsg, Bot *wcbot.WcBot) (isBreak bool) {
+var errJobExecFailed = errors.New("job exec failed")
+
+const JobFuncEventFunc biz.JobFuncID = 1
+
+func NewEventServer(useCase *biz.JobUseCase, bot *wcbot.WcBot) handler.MsgHandler {
+	err := useCase.RegisterJobFunc(JobFuncEventFunc, withJobFunc(bot))
+	if err != nil {
+		panic(err)
+	}
+
+	return func(msg *models.RealRecvMsg) (isBreak bool) {
 		job, ok := parseEvent(msg.Content.Data)
-		if ok {
+		if !ok {
 			return false
 		}
-		_, err := useCase.PutJob(context.TODO(), job)
+		job.FromUserID = msg.FromUserName
+		job.JobFuncID = JobFuncEventFunc
+
+		_, err := useCase.AddJob(context.TODO(), job)
 		if err != nil {
 			logrus.Error(err.Error())
 			return false
 		}
+
+		logrus.Infof("event job: %+v", job)
 
 		return true
 	}
 }
 
 func parseEvent(content string) (*biz.Job, bool) {
+
+	// 对内容进行修正，去除多余的空格
+	content = fixContext(content)
+
 	seg := strings.Split(content, splitChar)
 	if len(seg) != 2 && len(seg) != 3 {
 		return nil, false
@@ -53,7 +72,9 @@ func parseEvent(content string) (*biz.Job, bool) {
 
 		return &biz.Job{
 			CronExpress: fmt.Sprintf("%s %s", tExp, string(biz.ADay)),
+			Origin:      content,
 			Content:     seg[1],
+			JobType:     biz.JobTypeOnce,
 		}, true
 	case segTypeLoop:
 		fExp, err := parseFrequency(seg[0])
@@ -70,20 +91,22 @@ func parseEvent(content string) (*biz.Job, bool) {
 
 		return &biz.Job{
 			CronExpress: fmt.Sprintf("%s %s", tExp, fExp),
-			Origin:      "",
+			Origin:      content,
 			Content:     seg[2],
-			JobType:     0,
+			JobType:     biz.JobTypeCron,
 		}, true
 	}
 	return nil, false
 }
 
 var (
-	regFreType = regexp.MustCompile("(每天|每日|每周|每月|工作日)[^\\Day]*(\\Day+)")
+	regFreType = regexp.MustCompile("(每天|每日|每周|每月|工作日)(\\d*)")
 )
 var (
 	errParseFrequency = errors.New("parse Frequency error")
 )
+
+var regexpSpace = regexp.MustCompile("\\s+")
 
 func parseFrequency(content string) (string, error) {
 	var tp biz.FreType
@@ -116,6 +139,12 @@ func parseFrequency(content string) (string, error) {
 	return "", fmt.Errorf("%w: %s", errParseFrequency, "no match")
 }
 
+func fixContext(content string) string {
+	content = strings.TrimSpace(content)
+	content = string(regexpSpace.ReplaceAll([]byte(content), []byte(splitChar)))
+	return content
+}
+
 var errParseTime = errors.New("parse time error")
 
 func parseTime(content string) (string, error) {
@@ -124,4 +153,15 @@ func parseTime(content string) (string, error) {
 		return "", fmt.Errorf("%w: %s", errParseTime, err)
 	}
 	return t.Format("4 15"), nil
+}
+
+func withJobFunc(bot *wcbot.WcBot) biz.JobFunc {
+	return func(job *biz.Job) error {
+		logrus.Infof("send msg to: %s content: %s", job.FromUserID, job.Content)
+		ok := bot.SendMsgByUid(fmt.Sprintf("[海军BOT]\n\r%s", job.Content), job.FromUserID)
+		if !ok {
+			return fmt.Errorf("%w: %s", errJobExecFailed, "send msg failed")
+		}
+		return nil
+	}
 }

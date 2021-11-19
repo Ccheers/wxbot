@@ -53,7 +53,7 @@ func Test_parseTime(t *testing.T) {
 			if err != nil {
 				t.Fatal(err.Error())
 			}
-			logrus.Debug(dur.Hours())
+			logrus.Debug(dur)
 		})
 	}
 }

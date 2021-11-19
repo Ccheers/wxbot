@@ -15,11 +15,11 @@ import (
 
 // Injectors from wire.go:
 
-func initBot(bot *wcbot.WcBot) *handler.WeChatBot {
+func initBot(bot2 *wcbot.WcBot) *handler.WeChatBot {
 	dataData := data.NewData()
 	jobRepo := data.NewJobRepoImpl(dataData)
 	cronCron := cron.NewCron()
 	jobUseCase := biz.NewJobUseCase(jobRepo, cronCron)
-	weChatBot := newHandler(bot, jobUseCase)
+	weChatBot := newHandler(bot2, jobUseCase, cronCron)
 	return weChatBot
 }

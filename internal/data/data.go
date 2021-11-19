@@ -10,7 +10,7 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-const boltdbPath = "/var/data/boltdb"
+const boltdbPath = "./data/boltdb"
 
 var Provider = wire.NewSet(NewData, NewJobRepoImpl)
 

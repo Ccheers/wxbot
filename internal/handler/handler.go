@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type MsgHandler func(msg *models.RealRecvMsg, Bot *wcbot.WcBot) (isBreak bool)
+type MsgHandler func(msg *models.RealRecvMsg) (isBreak bool)
 
 type BotOption func(bot *WeChatBot)
 
@@ -44,7 +44,7 @@ func (w *WeChatBot) HandleMessage(msg *models.RealRecvMsg) {
 	)
 
 	for _, h := range w.middlewares {
-		isBreak := h(msg, w.Bot)
+		isBreak := h(msg)
 		if isBreak {
 			break
 		}
