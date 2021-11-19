@@ -33,7 +33,7 @@ import (
 )
 
 type Handler interface {
-	HandleMessage(models.RealRecvMsg)
+	HandleMessage(*models.RealRecvMsg)
 }
 
 type WcBot struct {
@@ -1213,7 +1213,7 @@ func (wc *WcBot) handleMsg(data models.RecvMsgs) {
 		}
 
 		content := wc.extractMsgContent(msgTypeId, msg)
-		realMsg := models.RealRecvMsg{
+		realMsg := &models.RealRecvMsg{
 			MsgTypeId:    msgTypeId,
 			MsgId:        msg.MsgId,
 			FromUserName: msg.FromUserName,

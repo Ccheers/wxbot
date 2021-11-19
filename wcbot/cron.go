@@ -3,18 +3,18 @@ package wcbot
 //import "C"
 import (
 	"fmt"
-	"wxBot4g/config"
 	"net/http"
 	"time"
+	"wxBot4g/config"
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 )
 
 func InitHeartbeatCron() {
 	c := cron.New()
-	err := c.AddFunc("@every 180s", heartbeat)
+	_, err := c.AddFunc("@every 180s", heartbeat)
 	if err != nil {
 		logrus.Error(err)
 		return
